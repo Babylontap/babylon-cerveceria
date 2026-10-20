@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Babylon Cervecería</title>
+<meta name="theme-color" content="#15181b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Babylon Cerv.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html,body{margin:0;height:100%;background:#15181b;color:#f2f0ec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#15181b}
+  #carga{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+  #carga img{width:96px;height:96px;border-radius:50%;animation:p 1.4s infinite}
+  @keyframes p{50%{opacity:.5}}
+  #error{display:none;padding:24px;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="carga"><img src="icono-192.png" alt=""><span>Cargando…</span></div>
+<div id="error">Falta pegar el link del sistema en <b>index.html</b> (línea LINK_DEL_SISTEMA).</div>
+<script>
+  // ▼▼▼ Pegá acá la "URL de la aplicación web" de Apps Script (termina en /exec), dejando las comillas ▼▼▼
+  const LINK_DEL_SISTEMA = 'PEGÁ_ACÁ_EL_LINK';
+  // ▲▲▲ No toques nada más ▲▲▲
+
+  if (LINK_DEL_SISTEMA.indexOf('https://') !== 0) {
+    document.getElementById('carga').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+  } else {
+    // Pasa ?barril=12 o ?vista=fabrica al sistema (así funcionan los QR).
+    const f = document.createElement('iframe');
+    f.src = LINK_DEL_SISTEMA + location.search;
+    f.allow = 'camera; clipboard-write';
+    f.onload = () => { document.getElementById('carga').style.display = 'none'; };
+    document.body.appendChild(f);
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
