@@ -33,9 +33,21 @@
     document.getElementById('carga').style.display = 'none';
     document.getElementById('error').style.display = 'block';
   } else {
-    // Pasa ?barril=12 o ?vista=fabrica al sistema (así funcionan los QR).
+    // Memoria de la app: vista elegida, nombre, tema. Se guarda acá (en la app) y se le pasa al sistema al abrir.
+    const CLAVES = ['cerv_rol', 'cerv_usuario', 'cerv_tema', 'cerv_enlatadores', 'fin_tema'];
+    const prefs = {};
+    CLAVES.forEach(k => { try{ const v = localStorage.getItem('bab_' + k); if(v) prefs[k] = v; }catch(e){} });
+    window.addEventListener('message', e => {
+      const d = e.data;
+      if(!d || d.babylon !== 'pref' || CLAVES.indexOf(d.k) === -1) return;
+      if(!/googleusercontent\.com$|google\.com$/.test(new URL(e.origin).hostname)) return;
+      try{ localStorage.setItem('bab_' + d.k, String(d.v)); }catch(x){}
+    });
+    // Pasa ?barril=12 o ?vista=finanzas al sistema (así funcionan los QR y los botones entre módulos).
+    const p = new URLSearchParams(location.search);
+    p.set('app', '1'); p.set('prefs', JSON.stringify(prefs));
     const f = document.createElement('iframe');
-    f.src = LINK_DEL_SISTEMA + location.search;
+    f.src = LINK_DEL_SISTEMA + '?' + p.toString();
     f.allow = 'camera; clipboard-write';
     f.onload = () => { document.getElementById('carga').style.display = 'none'; };
     document.body.appendChild(f);
