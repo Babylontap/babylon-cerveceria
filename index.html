@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Babylon Cervecería</title>
+<meta name="theme-color" content="#15181b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Babylon Cerv.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html,body{margin:0;height:100%;background:#15181b;color:#f2f0ec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  iframe{position:fixed;left:0;right:0;top:0;width:100%;height:100%;border:0;background:#15181b}
+  #carga{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+  #carga img{width:96px;height:96px;border-radius:50%;animation:p 1.4s infinite}
+  @keyframes p{50%{opacity:.5}}
+  #error{display:none;padding:24px;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="carga"><img src="icono-192.png" alt=""><span>Cargando…</span></div>
+<div id="error">Falta pegar el link del sistema en <b>index.html</b> (línea LINK_DEL_SISTEMA).</div>
+<script>
+  // ▼▼▼ Pegá acá la "URL de la aplicación web" de Apps Script (termina en /exec), dejando las comillas ▼▼▼
+  const LINK_DEL_SISTEMA = 'PEGÁ_ACÁ_EL_LINK';
+  // Alto del cartel de Google ("Esta aplicación la ha creado un usuario de Google Apps Script") que se esconde arriba.
+  // Si asoma un pedacito del cartel, subí el número; si se tapa el encabezado de la app, bajalo.
+  const RECORTE_CELU = 92, RECORTE_PC = 56;
+  // ▲▲▲ No toques nada más ▲▲▲
+
+  if (LINK_DEL_SISTEMA.indexOf('https://') !== 0) {
+    document.getElementById('carga').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+  } else {
+    // Memoria de la app: vista elegida, nombre, tema. Se guarda acá (en la app) y se le pasa al sistema al abrir.
+    const CLAVES = ['cerv_rol', 'cerv_usuario', 'cerv_tema', 'cerv_enlatadores', 'fin_tema', 'cerv_token', 'cerv_user', 'fin_token', 'fin_user', 'fin_salio'];
+    const prefs = {};
+    CLAVES.forEach(k => { try{ const v = localStorage.getItem('bab_' + k); if(v) prefs[k] = v; }catch(e){} });
+    window.addEventListener('message', e => {
+      const d = e.data;
+      if(!d || d.babylon !== 'pref' || CLAVES.indexOf(d.k) === -1) return;
+      if(!/googleusercontent\.com$|google\.com$/.test(new URL(e.origin).hostname)) return;
+      try{ if(d.v === null || d.v === undefined || d.v === '') localStorage.removeItem('bab_' + d.k); else localStorage.setItem('bab_' + d.k, String(d.v)); }catch(x){}
+    });
+    // Pasa ?barril=12 o ?vista=finanzas al sistema (así funcionan los QR y los botones entre módulos).
+    const p = new URLSearchParams(location.search);
+    p.set('app', '1'); p.set('prefs', JSON.stringify(prefs));
+    const f = document.createElement('iframe');
+    f.src = LINK_DEL_SISTEMA + '?' + p.toString();
+    f.allow = 'camera; clipboard-write';
+    f.onload = () => { document.getElementById('carga').style.display = 'none'; };
+    const recortar = () => { const r = window.innerWidth < 700 ? RECORTE_CELU : RECORTE_PC; f.style.top = -r + 'px'; f.style.height = 'calc(100% + ' + r + 'px)'; };
+    recortar(); window.addEventListener('resize', recortar);
+    document.body.appendChild(f);
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
